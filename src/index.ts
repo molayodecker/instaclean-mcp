@@ -29,6 +29,11 @@ const httpServer = createServer((req, res) => {
     return;
   }
 
+  if (!req.method) {
+    sendJson(res, 400, { error: "missing_http_method" });
+    return;
+  }
+
   if (!isOriginAllowed(req, config)) {
     sendJson(res, 403, { error: "origin_not_allowed" });
     return;
@@ -61,7 +66,8 @@ const httpServer = createServer((req, res) => {
   res.once("finish", closeHandler);
   res.once("close", closeHandler);
 
-  nodeHandler(req, res).catch((error) => {
+  const nodeRequest = req as typeof req & { method: string };
+  nodeHandler(nodeRequest, res).catch((error) => {
     console.error("MCP request failed", error);
     if (!res.headersSent) sendJson(res, 500, { error: "mcp_request_failed" });
     else res.destroy();
