@@ -55,7 +55,7 @@ The MCP server can request a refund, but it does not directly send money through
 
 Cancellation follows Instaclean policy in Mithril. Eligible paid cancellations queue a refund request automatically; same-day/no-refund cancellations do not create a money-moving action.
 
-Payouts, arbitrary pricing mutation, account deletion, and verification mutation remain outside the MCP surface.
+Payouts, arbitrary pricing mutation, account deletion, and direct verification-flag overrides remain outside the MCP surface. Cleaner verification changes are only available through the canonical cleaner-application approval transaction.
 
 ## Authentication
 
