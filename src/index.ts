@@ -3,8 +3,9 @@ import { createServer } from "node:http";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { createMcpHandler } from "@modelcontextprotocol/server";
 
-import { isOriginAllowed, resolveMithrilAuth, UnauthorizedError } from "./auth.js";
+import { resolveMithrilAuth, UnauthorizedError } from "./auth.js";
 import { loadConfig } from "./config.js";
+import { corsHeaders, isCorsPreflight, requestPath } from "./http.js";
 import { MithrilClient } from "./mithril/client.js";
 import { createInstacleanMcpServer } from "./tools/register.js";
 
@@ -17,14 +18,18 @@ function sendJson(res: import("node:http").ServerResponse, status: number, body:
 }
 
 const httpServer = createServer((req, res) => {
-  const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+  const pathname = requestPath(req);
+  if (pathname === null) {
+    sendJson(res, 400, { error: "invalid_request_target" });
+    return;
+  }
 
-  if (url.pathname === "/health") {
+  if (pathname === "/health") {
     sendJson(res, 200, { status: "ok", service: "instaclean-mcp", version: "0.1.0" });
     return;
   }
 
-  if (url.pathname !== "/mcp") {
+  if (pathname !== "/mcp") {
     sendJson(res, 404, { error: "not_found" });
     return;
   }
@@ -34,8 +39,19 @@ const httpServer = createServer((req, res) => {
     return;
   }
 
-  if (!isOriginAllowed(req, config)) {
+  const headers = corsHeaders(req, config);
+  if (headers === null) {
     sendJson(res, 403, { error: "origin_not_allowed" });
+    return;
+  }
+
+  for (const [name, value] of Object.entries(headers)) {
+    res.setHeader(name, value);
+  }
+
+  if (isCorsPreflight(req)) {
+    res.statusCode = 204;
+    res.end();
     return;
   }
 
