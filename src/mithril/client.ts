@@ -44,18 +44,18 @@ export class MithrilClient implements MithrilApi {
       headers.set("x-instaclean-user-id", this.auth.actorUserId);
     }
 
-    let body: string | undefined;
-    if (options.body !== undefined) {
-      headers.set("content-type", "application/json");
-      body = JSON.stringify(options.body);
-    }
-
-    const response = await this.fetchImpl(url, {
+    const init: RequestInit = {
       method: options.method || "GET",
       headers,
-      body,
       signal: AbortSignal.timeout(this.timeoutMs),
-    });
+    };
+
+    if (options.body !== undefined) {
+      headers.set("content-type", "application/json");
+      init.body = JSON.stringify(options.body);
+    }
+
+    const response = await this.fetchImpl(url, init);
 
     const text = await response.text();
     let payload: unknown = null;
