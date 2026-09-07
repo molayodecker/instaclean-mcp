@@ -66,7 +66,10 @@ const httpServer = createServer((req, res) => {
   res.once("finish", closeHandler);
   res.once("close", closeHandler);
 
-  const nodeRequest = req as typeof req & { method: string };
+  // @modelcontextprotocol/node intentionally accepts a minimal Node-like request
+  // whose method/url are required. A real IncomingMessage is runtime-compatible,
+  // but @types/node marks both fields optional, so contain the structural cast here.
+  const nodeRequest = req as unknown as Parameters<typeof nodeHandler>[0];
   nodeHandler(nodeRequest, res).catch((error) => {
     console.error("MCP request failed", error);
     if (!res.headersSent) sendJson(res, 500, { error: "mcp_request_failed" });
