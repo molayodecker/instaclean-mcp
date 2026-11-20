@@ -39,8 +39,12 @@ The MCP server does not connect directly to PostgreSQL and does not duplicate Mi
 - `request_replacement` - replacement request for an owned booking
 - `assign_worker` - vetted worker assignment through Mithril's assignment endpoint
 - `update_service_request` - triage/matching/resolve/cancel transitions
+- `start_whatsapp_booking_offer` - send a priced WhatsApp booking offer
+- `get_whatsapp_booking_offer` - read the latest offer for a phone
+- `accept_whatsapp_booking_offer` - record the Book tap and return date options
+- `schedule_whatsapp_booking_offer` - create the booking, keep the offered price, and assign the nearest cleaner
 
-Payments, refunds, payouts, pricing mutation, account deletion, and verification mutation are intentionally not exposed in the initial MCP surface.
+Payments, refunds, payouts, account deletion, and verification mutation are intentionally not exposed. The WhatsApp offer is the one path that sets a customer total, and Mithril stores the amount the staff named.
 
 ## Authentication
 
