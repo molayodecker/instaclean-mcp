@@ -25,7 +25,7 @@ const httpServer = createServer((req, res) => {
   }
 
   if (pathname === "/health") {
-    sendJson(res, 200, { status: "ok", service: "instaclean-mcp", version: "0.1.0" });
+    sendJson(res, 200, { status: "ok", service: "instaclean-mcp", version: "0.2.0" });
     return;
   }
 
