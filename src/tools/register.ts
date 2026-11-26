@@ -390,5 +390,61 @@ export function createInstacleanMcpServer(api: MithrilApi): McpServer {
       ),
   );
 
+  server.registerTool(
+    "start_whatsapp_booking_offer",
+    {
+      description:
+        "Send a WhatsApp booking offer for a specific price. The booking is not created until the customer chooses a time. Requires an admin actor. Do not invent the amount.",
+      inputSchema: z.object({
+        customerUserId: z.uuid(),
+        serviceId: z.number().int().positive(),
+        amountMinor: z.number().int().min(100),
+        address: z.string().trim().min(3).max(500),
+        latitude: z.number().min(-90).max(90).optional(),
+        longitude: z.number().min(-180).max(180).optional(),
+        durationHours: z.number().min(1).max(24).optional(),
+      }),
+    },
+    async (body) => call(() => api.request("/direct/admin/whatsapp/booking-offers", { method: "POST", body })),
+  );
+
+  server.registerTool(
+    "get_whatsapp_booking_offer",
+    {
+      description: "Read the latest WhatsApp booking offer for a customer phone in E.164 format.",
+      inputSchema: z.object({ phone: z.string().trim().min(8).max(32) }),
+    },
+    async ({ phone }) =>
+      call(() => api.request("/direct/admin/whatsapp/booking-offers", { query: { phone } })),
+  );
+
+  server.registerTool(
+    "accept_whatsapp_booking_offer",
+    {
+      description:
+        "Record that the customer tapped Book. Returns the next three morning options and keeps the offer waiting for a time. Does not create a booking.",
+      inputSchema: z.object({ offerId: z.uuid() }),
+    },
+    async ({ offerId }) =>
+      call(() => api.request(`/direct/admin/whatsapp/booking-offers/${offerId}/accept`, { method: "POST", body: {} })),
+  );
+
+  server.registerTool(
+    "schedule_whatsapp_booking_offer",
+    {
+      description:
+        "Create the booking at the customer's chosen future date and time, set the customer total to the offered amount, and assign the nearest eligible cleaner. Date is YYYY-MM-DD and time is HH:MM between 06:00 and 20:00.",
+      inputSchema: z.object({
+        offerId: z.uuid(),
+        scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        scheduledTime: z.string().regex(/^\d{2}:\d{2}$/),
+      }),
+    },
+    async ({ offerId, ...body }) =>
+      call(() =>
+        api.request(`/direct/admin/whatsapp/booking-offers/${offerId}/schedule`, { method: "POST", body }),
+      ),
+  );
+
   return server;
 }

@@ -48,6 +48,10 @@ The MCP server does not connect directly to PostgreSQL and does not duplicate Mi
 - `request_replacement` - replacement request for an owned booking
 - `assign_worker` - vetted worker assignment through Mithril's assignment endpoint
 - `update_service_request` - triage/matching/resolve/cancel transitions
+- `start_whatsapp_booking_offer` - send a priced WhatsApp booking offer
+- `get_whatsapp_booking_offer` - read the latest offer for a phone
+- `accept_whatsapp_booking_offer` - record the Book tap and return date options
+- `schedule_whatsapp_booking_offer` - create the booking, keep the offered price, and assign the nearest cleaner
 
 ### Financial safety
 
@@ -55,7 +59,7 @@ The MCP server can request a refund, but it does not directly send money through
 
 Cancellation follows Instaclean policy in Mithril. Eligible paid cancellations queue a refund request automatically; same-day/no-refund cancellations do not create a money-moving action.
 
-Payouts, arbitrary pricing mutation, account deletion, and direct verification-flag overrides remain outside the MCP surface. Cleaner verification changes are only available through the canonical cleaner-application approval transaction.
+Payouts, arbitrary pricing mutation, account deletion, and direct verification-flag overrides remain outside the MCP surface. Cleaner verification changes are only available through the canonical cleaner-application approval transaction. The WhatsApp offer is the one path that sets a customer total, and Mithril stores the amount the staff named.
 
 ## Authentication
 
@@ -156,6 +160,8 @@ fly secrets set \
 ```
 
 Then point `mcp.tryinstaclean.com` to the deployed service.
+
+Pull requests run typecheck, tests, and a container build. After that CI succeeds on `main`, the Deploy workflow promotes that exact commit to the production Fly app `instaclean-mcp`. A manual run of Deploy can promote an older `main` commit by SHA. Fly secrets stay on the app and are not written by the workflow.
 
 ## Next security milestone: OAuth
 
