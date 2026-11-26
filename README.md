@@ -35,6 +35,8 @@ The MCP server does not connect directly to PostgreSQL and does not duplicate Mi
 - `get_booking` - current customer's booking details
 - `preview_cancellation` - cancellation eligibility and policy-derived refund preview
 - `diagnose_payment` - admin payment diagnostics using local attempts and Paystack verification
+- `list_whatsapp_threads` - admin WhatsApp inbox
+- `list_whatsapp_messages` - WhatsApp messages for one phone
 
 ### Write
 
@@ -52,6 +54,9 @@ The MCP server does not connect directly to PostgreSQL and does not duplicate Mi
 - `get_whatsapp_booking_offer` - read the latest offer for a phone
 - `accept_whatsapp_booking_offer` - record the Book tap and return date options
 - `schedule_whatsapp_booking_offer` - create the booking, keep the offered price, and assign the nearest cleaner
+- `send_whatsapp_message` - staff WhatsApp reply; session text inside 24 hours, otherwise the approved follow-up template
+- `send_sms` - staff SMS through Mithril's Twilio sender
+- `create_whatsapp_customer` - open a customer account for a WhatsApp number without replacing a saved name
 
 ### Financial safety
 
@@ -60,6 +65,8 @@ The MCP server can request a refund, but it does not directly send money through
 Cancellation follows Instaclean policy in Mithril. Eligible paid cancellations queue a refund request automatically; same-day/no-refund cancellations do not create a money-moving action.
 
 Payouts, arbitrary pricing mutation, account deletion, and direct verification-flag overrides remain outside the MCP surface. Cleaner verification changes are only available through the canonical cleaner-application approval transaction. The WhatsApp offer is the one path that sets a customer total, and Mithril stores the amount the staff named.
+
+Twilio credentials stay on Mithril. The MCP server can read the staff WhatsApp inbox and send a WhatsApp message or SMS only through those Mithril endpoints. It cannot buy numbers, change webhooks, or call the Twilio API directly. Voice calls stay outside this surface.
 
 ## Authentication
 

@@ -56,7 +56,7 @@ async function call(operation: () => Promise<unknown>) {
 }
 
 export function createInstacleanMcpServer(api: MithrilApi): McpServer {
-  const server = new McpServer({ name: "instaclean", version: "0.2.0" });
+  const server = new McpServer({ name: "instaclean", version: "0.3.0" });
 
   server.registerTool(
     "search_customers",
@@ -388,6 +388,77 @@ export function createInstacleanMcpServer(api: MithrilApi): McpServer {
           body,
         }),
       ),
+  );
+
+  server.registerTool(
+    "list_whatsapp_threads",
+    {
+      description:
+        "List the Instaclean staff WhatsApp inbox. Each thread includes the customer phone, last activity, and a short preview. Requires an admin actor.",
+      inputSchema: z.object({}),
+    },
+    async () => call(() => api.request("/direct/admin/whatsapp/threads")),
+  );
+
+  server.registerTool(
+    "list_whatsapp_messages",
+    {
+      description:
+        "List WhatsApp messages for one customer phone in E.164 format. Requires an admin actor.",
+      inputSchema: z.object({ phone: z.string().trim().min(8).max(32) }),
+    },
+    async ({ phone }) => call(() => api.request("/direct/admin/whatsapp/messages", { query: { phone } })),
+  );
+
+  server.registerTool(
+    "send_whatsapp_message",
+    {
+      description:
+        "Send a staff WhatsApp message through Mithril. Inside the 24-hour customer reply window the text is sent as typed. Outside that window Mithril uses the approved session follow-up template, or refuses if that template is unavailable. Requires an admin actor and confirm: true. Do not invent the phone number.",
+      inputSchema: z.object({
+        phoneE164: z.string().trim().min(8).max(32),
+        body: z.string().trim().min(1).max(2000),
+        confirm: z.literal(true),
+      }),
+    },
+    async ({ confirm, ...body }) => {
+      void confirm;
+      return call(() => api.request("/direct/admin/whatsapp/send", { method: "POST", body }));
+    },
+  );
+
+  server.registerTool(
+    "send_sms",
+    {
+      description:
+        "Send an SMS through Mithril's Twilio sender. Requires an admin actor and confirm: true. Do not invent the phone number. This does not send WhatsApp.",
+      inputSchema: z.object({
+        phoneE164: z.string().trim().min(8).max(32),
+        body: z.string().trim().min(1).max(2000),
+        confirm: z.literal(true),
+      }),
+    },
+    async ({ confirm, ...body }) => {
+      void confirm;
+      return call(() => api.request("/direct/admin/whatsapp/sms", { method: "POST", body }));
+    },
+  );
+
+  server.registerTool(
+    "create_whatsapp_customer",
+    {
+      description:
+        "Open an Instaclean customer account for a WhatsApp phone number. An existing account keeps its current name when one is already saved. Requires an admin actor and confirm: true.",
+      inputSchema: z.object({
+        phoneE164: z.string().trim().min(8).max(32),
+        name: z.string().trim().min(1).max(80),
+        confirm: z.literal(true),
+      }),
+    },
+    async ({ confirm, ...body }) => {
+      void confirm;
+      return call(() => api.request("/direct/admin/whatsapp/customers", { method: "POST", body }));
+    },
   );
 
   server.registerTool(
