@@ -35,6 +35,7 @@ The MCP server does not connect directly to PostgreSQL and does not duplicate Mi
 - `get_booking` - current customer's booking details
 - `preview_cancellation` - cancellation eligibility and policy-derived refund preview
 - `diagnose_payment` - admin payment diagnostics using local attempts and Paystack verification
+- `list_twilio_messages` - Twilio's own SMS and WhatsApp history, including messages not stored in the Instaclean inbox
 - `list_whatsapp_threads` - admin WhatsApp inbox
 - `list_whatsapp_messages` - WhatsApp messages for one phone
 
@@ -66,7 +67,7 @@ Cancellation follows Instaclean policy in Mithril. Eligible paid cancellations q
 
 Payouts, arbitrary pricing mutation, account deletion, and direct verification-flag overrides remain outside the MCP surface. Cleaner verification changes are only available through the canonical cleaner-application approval transaction. The WhatsApp offer is the one path that sets a customer total, and Mithril stores the amount the staff named.
 
-Twilio credentials stay on Mithril. The MCP server can read the staff WhatsApp inbox and send a WhatsApp message or SMS only through those Mithril endpoints. It cannot buy numbers, change webhooks, or call the Twilio API directly. Voice calls stay outside this surface.
+Twilio credentials stay on Mithril. `list_twilio_messages` reads Twilio's message history through Mithril for staff only. The server still cannot buy numbers, change webhooks, or place voice calls.
 
 ## Authentication
 

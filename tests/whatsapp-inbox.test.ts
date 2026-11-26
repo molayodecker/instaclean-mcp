@@ -26,6 +26,7 @@ describe("staff Twilio inbox tools", () => {
     const { server } = harness();
     expect(Object.keys(server._registeredTools)).toEqual(
       expect.arrayContaining([
+        "list_twilio_messages",
         "list_whatsapp_threads",
         "list_whatsapp_messages",
         "send_whatsapp_message",
@@ -49,6 +50,24 @@ describe("staff Twilio inbox tools", () => {
         options: {
           method: "POST",
           body: { phoneE164: "+233200000000", body: "Your cleaner is on the way." },
+        },
+      },
+    ]);
+  });
+
+  it("pages Twilio's own message history without the Instaclean inbox", async () => {
+    const { calls, server } = harness();
+    await server._registeredTools.list_twilio_messages.handler({
+      to: "whatsapp:+233200000000",
+      pageSize: 25,
+      pageToken: "PA123",
+    });
+
+    expect(calls).toEqual([
+      {
+        path: "/direct/admin/twilio/messages",
+        options: {
+          query: { to: "whatsapp:+233200000000", from: undefined, pageSize: 25, pageToken: "PA123" },
         },
       },
     ]);
