@@ -56,7 +56,7 @@ async function call(operation: () => Promise<unknown>) {
 }
 
 export function createInstacleanMcpServer(api: MithrilApi): McpServer {
-  const server = new McpServer({ name: "instaclean", version: "0.3.0" });
+  const server = new McpServer({ name: "instaclean", version: "0.4.0" });
 
   server.registerTool(
     "search_customers",
@@ -386,6 +386,26 @@ export function createInstacleanMcpServer(api: MithrilApi): McpServer {
         api.request(`/direct/admin/service-requests/${requestId}/status`, {
           method: "POST",
           body,
+        }),
+      ),
+  );
+
+  server.registerTool(
+    "list_twilio_messages",
+    {
+      description:
+        "Read Twilio's own SMS and WhatsApp history for the Instaclean account. This is the provider log, including messages that were never copied into the Instaclean inbox. Requires an admin actor. Results are newest first, 50 at a time. Pass nextPageToken to read older pages. Filter with to or from exactly as Twilio stored the address, including the whatsapp: prefix.",
+      inputSchema: z.object({
+        to: z.string().trim().min(8).max(42).optional(),
+        from: z.string().trim().min(8).max(42).optional(),
+        pageSize: z.number().int().min(1).max(100).optional(),
+        pageToken: z.string().trim().regex(/^[A-Za-z0-9]{1,200}$/).optional(),
+      }),
+    },
+    async ({ to, from, pageSize, pageToken }) =>
+      call(() =>
+        api.request("/direct/admin/twilio/messages", {
+          query: { to, from, pageSize, pageToken },
         }),
       ),
   );
